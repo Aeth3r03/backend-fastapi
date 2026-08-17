@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class ProductoBase(BaseModel):
@@ -7,12 +7,12 @@ class ProductoBase(BaseModel):
     precio: float
     stock: Optional[int] = 0
     disponible: Optional[bool] = True
+    categoria_id: int
 
 class ProductoCreate(ProductoBase):
     pass 
 
 class ProductoResponse(ProductoBase):
     id: int
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+    

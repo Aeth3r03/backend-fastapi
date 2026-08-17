@@ -2,11 +2,17 @@ from sqlalchemy.orm import Session
 from app.models.productos import Producto
 from app.schemas.productos import ProductoCreate
 
-def get_producto_by_codigo(
-        db: Session, 
-        codigo: str
-        ):
+def get_producto_by_codigo(db: Session, codigo: str):
     return db.query(Producto).filter(Producto.codigo == codigo).first()
+
+def get_producto_by_categoria(
+        db: Session, 
+        categoria_id: int,
+        skip: int = 0,
+        limit: int = 100,
+        ):
+    query = db.query(Producto).filter(Producto.categoria_id == categoria_id).offset(skip).limit(limit).all()
+    return query
 
 def get_productos(
         db: Session, 
