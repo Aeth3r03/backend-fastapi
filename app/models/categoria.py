@@ -7,5 +7,5 @@ class Categoria(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, unique=True, nullable=False, index=True)
-
     productos = relationship("Producto", back_populates="categoria")
+    imagen_url = Column(String, nullable=True)

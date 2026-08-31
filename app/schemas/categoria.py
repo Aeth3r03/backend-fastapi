@@ -9,3 +9,4 @@ class CategoriaCreate(CategoriaBase):
 class CategoriaResponse(CategoriaBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
+    imagen_url: str | None = None

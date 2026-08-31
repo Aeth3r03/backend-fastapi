@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.endpoints import productos
 from app.api.v1.endpoints import auth
 from app.api.v1.endpoints import categorias
+from fastapi.staticfiles import StaticFiles
+import os
 
 
 app = FastAPI(
@@ -10,6 +12,8 @@ app = FastAPI(
     description="Backend para la gestión del negocio",
     version="1.0.0"
 )
+
+STATIC_DIR = "static"
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,4 +27,5 @@ app.include_router(productos.router, prefix="/api/v1/productos", tags=["Producto
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(categorias.router, prefix="/api/v1/categorias", tags=["Categorias"])
 
-# AAAAAA:... CON costo lo logré jajajaja, dime que tal si fallé en algo, fue divertido, me gusto este reto. Me gustaría repetir retos así. Copié como se estructuraba los archivos similares, aun que estoy inseguro
+os.makedirs(STATIC_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
