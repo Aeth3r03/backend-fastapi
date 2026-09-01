@@ -38,7 +38,7 @@ def listar_categorias(db: Session = Depends(get_db)):
     return get_categorias(db)
 
 @router.get("/{categoria_id}", response_model=List[ProductoResponse])
-def obtener_categoria(categoria_id: int, db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
+def obtener_categoria(categoria_id: int, db: Session = Depends(get_db), skip: int = 0, limit: int = 100): # type: ignore
     db_categoria = get_categoria_by_id(db, categoria_id)
     if not db_categoria:
         raise not_found
