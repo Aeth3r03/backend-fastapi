@@ -8,7 +8,6 @@ from app.crud.categoria import get_categorias, create_categoria, get_categoria_b
 from app.crud.productos import get_producto_by_categoria
 from app.models.usuario import Usuario
 from app.api.deps import get_current_user
-import os
 import shutil
 from pathlib import Path
 
@@ -30,6 +29,8 @@ TIPOS_PERMITIDOS = {
     "image/png": ".png",
     "image/webp": ".webp"
 }
+
+MAX_TAMANO_BYTES = 5 * 1024 * 1024
 
 #GET
 @router.get("/", response_model=List[CategoriaResponse])
@@ -88,15 +89,28 @@ async def subir_imagen_categoria(
         )
 
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+    for archivo_viejo in UPLOAD_DIR.glob(f"{categoria_id}.*"):
+        archivo_viejo.unlink()
+
     ext = TIPOS_PERMITIDOS[imagen.content_type]
     nombre_archivo = f"{categoria_id}{ext}"
     destino = UPLOAD_DIR / nombre_archivo
 
+    tamano = 0
     with destino.open("wb") as buffer:
-        shutil.copyfileobj(imagen.file, buffer)
+        while chunk := await imagen.read(1024 * 1024):
+            tamano += len(chunk)
+            if tamano > MAX_TAMANO_BYTES:
+                buffer.close()
+                destino.unlink()
+                raise HTTPException(
+                    status_code=400,
+                    detail="La imagen no puede pesar mas de 5MB"
+                )
+            buffer.write(chunk)
 
-    imagen_url = f"/static/categorias/{nombre_archivo}"
-    db_categoria.imagen_url = imagen_url
+    db_categoria.imagen_url = f"/static/categorias/{nombre_archivo}"
     db.commit()
     db.refresh(db_categoria)
     return db_categoria
