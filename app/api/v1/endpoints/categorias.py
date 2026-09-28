@@ -7,7 +7,7 @@ from app.schemas.productos import ProductoResponse
 from app.crud.categoria import get_categorias, create_categoria, get_categoria_by_id, update_categoria, delete_categoria
 from app.crud.productos import get_producto_by_categoria
 from app.models.usuario import Usuario
-from app.api.deps import get_current_user
+from app.api.deps import require_permission
 import shutil
 from pathlib import Path
 
@@ -39,7 +39,7 @@ def listar_categorias(db: Session = Depends(get_db)):
     return get_categorias(db)
 
 @router.get("/{categoria_id}", response_model=List[ProductoResponse])
-def obtener_categoria(categoria_id: int, db: Session = Depends(get_db), skip: int = 0, limit: int = 100): # type: ignore
+def obtener_categoria(categoria_id: int, db: Session = Depends(get_db), skip: int = 0, limit: int = 100):
     db_categoria = get_categoria_by_id(db, categoria_id)
     if not db_categoria:
         raise not_found
@@ -47,12 +47,12 @@ def obtener_categoria(categoria_id: int, db: Session = Depends(get_db), skip: in
 
 #POST
 @router.post("/", response_model=CategoriaResponse)
-def crear_categoria(categoria: CategoriaCreate, db: Session = Depends(get_db), usuario_actual: Usuario = Depends(get_current_user)):
+def crear_categoria(categoria: CategoriaCreate, db: Session = Depends(get_db), usuario_actual: Usuario = Depends(require_permission("categories:manage"))):
     return create_categoria(db, categoria)
 
 #PUT
 @router.put("/{categoria_id}", response_model=CategoriaResponse)
-def actualizar_categoria(categoria_id: int, categoria: CategoriaCreate, db: Session = Depends(get_db), usuario_actual: Usuario = Depends(get_current_user)):
+def actualizar_categoria(categoria_id: int, categoria: CategoriaCreate, db: Session = Depends(get_db), usuario_actual: Usuario = Depends(require_permission("categories:manage"))):
     db_categoria = update_categoria(db, categoria_id, categoria)
     if not db_categoria:
         raise not_found
@@ -60,7 +60,7 @@ def actualizar_categoria(categoria_id: int, categoria: CategoriaCreate, db: Sess
 
 #DELETE
 @router.delete("/{categoria_id}", status_code=204)
-def eliminar_categoria(categoria_id, db: Session = Depends(get_db), usario_actual: Usuario = Depends(get_current_user)):
+def eliminar_categoria(categoria_id, db: Session = Depends(get_db), usuario_actual: Usuario = Depends(require_permission("categories:manage"))):
     db_categoria = get_categoria_by_id(db, categoria_id)
     if not db_categoria:
         raise not_found
@@ -76,7 +76,7 @@ async def subir_imagen_categoria(
     categoria_id: int,
     imagen: UploadFile = File(...),
     db: Session = Depends(get_db),
-    usuario_actual: Usuario = Depends(get_current_user)
+    usuario_actual: Usuario = Depends(require_permission("images:upload"))
 ):
     db_categoria = get_categoria_by_id(db, categoria_id)
     if not db_categoria:
@@ -114,3 +114,5 @@ async def subir_imagen_categoria(
     db.commit()
     db.refresh(db_categoria)
     return db_categoria
+
+    
